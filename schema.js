@@ -5,189 +5,245 @@ const gql = String.raw;
 
 /**
  * TODO:
- * Link Create Project mutation with Add Line Item mutation
+ * Specify Mutation type and resolvers
  * Add endLinks field to line items
  * Add pricing and feasibility
  * Add updateProject, updateLineItem
  * Add "data endpoints" (countries/languages, attributes, categories)
+ * Add actual API
  */
 
-// Construct a schema, using GraphQL schema language
+//     type Mutation {
+//         createProject(
+//             extProjectId: ID!,
+//             title: String!,
+//             notificationEmails: [Email!]!,
+//             devices: [Device!]!,
+//             category: ProjectCategory!,
+//             lineItems: [LineItem!]!,
+//             exclusions: ProjectExclusions
+//         ): Project
+//         buyProject(
+//             extProjectId: ID!,
+//             extLineItemId: ID!,
+//             surveyURL: String!,
+//             surveyTextURL: String!
+//         ): LineItem
+//         closeProject(extProjectId: ID!): Project
+//         addLineItem(
+//             extLineItemId: ID!,
+//             title: String!,
+//             countryISOCode: CountryISOCode!,
+//             languageISOCode: LanguageISOCode!,
+//             surveyURL: String,
+//             surveyTestURL: String,
+//             indicativeIncidence: Float!,
+//             daysInField: Int!,
+//             lengthOfInterview: Int!,
+//             requiredCompletes: Int!,
+//         )
+//     }
+
+const mockProject = {
+	extProjectId: "0",
+	title: "Mock Project",
+	countryISOCode: "US",
+	languageISOCode: "EN",
+	notificationEmails: [],
+	devices: [],
+	category: {
+		surveyTopic: "Mock"
+	},
+	lineItems: [],
+	exclusions: {
+		type: "PROJECT",
+		list: []
+	},
+	state: "PROVISIONED",
+	stateLastUpdatedAt: "00:00",
+	createdAt: "00:00",
+	updatedAt: "00:00"
+};
+
+const mockLineItem = {
+	state: "PROVISIONED",
+	stateReason: "Mock",
+	stateLastUpdatedAt: "00:00",
+	createdAt: "00:00",
+	updatedAt: "00:00",
+	launchedAt: "00:00",
+	quotaPlan: {
+		filters: []
+	},
+	quotaGroups: []
+};
+
 const typeDefs = gql`
-    enum Device {
-        mobile
-        desktop
-        tablet
-    }
-
-    enum ExclusionType {
-        PROJECT
-        TAG
-    }
-    
-    enum ProjectState {
-        PROVISIONED
-        LAUNCHED
-        PAUSED
-        CLOSED
-    }
-
-    enum LineItemState {
-        PROVISIONED
-        AWAITING_APPROVAL
-        LAUNCHED
-        PAUSED
-        CLOSED
-        INVOICED
-    }
-
-    scalar Timestamp
-    scalar Email
-    scalar CountryISOCode
-    scalar LanguageISOCode
-
-    input ProjectCategory {
-        surveyTopic: [ID!]!
-    }
-
-    input ProjectExclusions {
-        type: ExclusionType!
-        list: [String!]!
-    }
-
-    input Filter {
-        attributeId: ID!
-        options: [ID!]!
-    }
-
-    input Quota {
-        attributeId: ID!
-        options: [QuotaOption!]!
-    }
-
-    input QuotaOption {
-        option: [ID!]
-        perc: Float!
-    }
-
-    input QuotaPlan {
-        filters: [Filter!]!
-    }
-
-    input QuotaGroup {
-        name: String!
-        quotas: [Quota!]!
-    }
-
-    interface Report {
-        attempts: Int
-        completes: Int
-        screenouts: Int
-        overquotas: Int
-        starts: Int
-        conversion: Float
-        remainingCompletes: Int
-        actualMedianLOI: Int
-        incurredCost: Float
-        estimatedCost: Float
-    }
-
-    type Query {
-		allProjects: [Project]
-        project(extProjectId: ID!): Project
-        allLineItems(extProjectId: ID!): [LineItem]
-        lineItem(extProjectId: ID!, extLineItemId: ID!): LineItem
+	# Enums
+	enum Device {
+		mobile
+		desktop
+		tablet
 	}
 
-    type Mutation {
-        createProject(
-            extProjectId: ID!,
-            title: String!,
-            notificationEmails: [Email!]!,
-            devices: [Device!]!,
-            category: ProjectCategory!,
-            lineItems: [LineItem!]!,
-            exclusions: ProjectExclusions
-        ): Project
-        buyProject(
-            extProjectId: ID!,
-            extLineItemId: ID!,
-            surveyURL: String!,
-            surveyTextURL: String!
-        ): LineItem
-        closeProject(extProjectId: ID!): Project
-        addLineItem(
-            extLineItemId: ID!,
-            title: String!,
-            countryISOCode: CountryISOCode!,
-            languageISOCode: LanguageISOCode!,
-            surveyURL: String,
-            surveyTestURL: String,
-            indicativeIncidence: Float!,
-            daysInField: Int!,
-            lengthOfInterview: Int!,
-            requiredCompletes: Int!,
-        )
-    }
+	enum ExclusionType {
+		PROJECT
+		TAG
+	}
 
-    type Project {
-        extProjectId: ID!
-        title: String!
-        notificationEmails: [Email!]!
-        devices: [Device!]!
-        category: ProjectCategory!
-        lineItems: [LineItem!]!
-        exclusions: ProjectExclusions
-        state: ProjectState
-        stateLastUpdatedAt: Timestamp
-        createdAt: Timestamp
-        updatedAt: Timestamp
-    }
+	enum ProjectState {
+		PROVISIONED
+		LAUNCHED
+		PAUSED
+		CLOSED
+	}
 
-    type ProjectReport implements Report {
-        project: Project
-        attempts: Int
-        completes: Int
-        screenouts: Int
-        overquotas: Int
-        starts: Int
-        conversion: Float
-        remainingCompletes: Int
-        actualMedianLOI: Int
-        incurredCost: Float
-        estimatedCost: Float
-    }
+	enum LineItemState {
+		PROVISIONED
+		AWAITING_APPROVAL
+		LAUNCHED
+		PAUSED
+		CLOSED
+		INVOICED
+	}
 
-    type LineItemReport implements Report {
-        lineItem: LineItem!
-        attempts: Int
-        completes: Int
-        screenouts: Int
-        overquotas: Int
-        starts: Int
-        conversion: Float
-        remainingCompletes: Int
-        actualMedianLOI: Int
-        incurredCost: Float
-        estimatedCost: Float
-    }
-    
-    type LineItem {
-        quotaPlan: QuotaPlan!
-        quotaGroups: [QuotaGroup!]!
-        countryISOCode: CountryISOCode!
-        languageISOCode: LanguageISOCode!
-        state: LineItemState!
-        stateReason: String
-        stateLastUpdatedAt: Timestamp
-        createdAt: Timestamp
-        updatedAt: Timestamp
-        launchedAt: Timestamp
-    }
+	# Scalars
+	scalar Timestamp
 
+	scalar Email
+
+	scalar CountryISOCode
+
+	scalar LanguageISOCode
+
+	type ProjectCategory {
+		surveyTopic: [ID!]!
+	}
+
+	type Filter {
+		attributeId: ID!
+		options: [ID!]!
+	}
+
+	type ProjectExclusions {
+		type: ExclusionType!
+		list: [String!]!
+	}
+
+	type QuotaGroup {
+		name: String!
+		quotas: [Quota!]!
+	}
+
+	type Quota {
+		attributeId: ID!
+		options: [QuotaOption!]!
+	}
+
+	type QuotaOption {
+		option: [ID!]
+		perc: Float!
+	}
+
+	type QuotaPlan {
+		filters: [Filter!]!
+	}
+
+	interface Report {
+		attempts: Int
+		completes: Int
+		screenouts: Int
+		overquotas: Int
+		starts: Int
+		conversion: Float
+		remainingCompletes: Int
+		actualMedianLOI: Int
+		incurredCost: Float
+		estimatedCost: Float
+	}
+
+	type Query {
+		allProjects: [Project!]
+		project(extProjectId: ID!): Project
+		allLineItems(extProjectId: ID!): [LineItem!]
+		lineItem(extProjectId: ID!, extLineItemId: ID!): LineItem
+	}
+
+	type Mutation {
+		test: String
+	}
+
+	type LineItemReport implements Report {
+		lineItem: LineItem!
+		attempts: Int
+		completes: Int
+		screenouts: Int
+		overquotas: Int
+		starts: Int
+		conversion: Float
+		remainingCompletes: Int
+		actualMedianLOI: Int
+		incurredCost: Float
+		estimatedCost: Float
+	}
+
+	type ProjectReport implements Report {
+		project: Project
+		attempts: Int
+		completes: Int
+		screenouts: Int
+		overquotas: Int
+		starts: Int
+		conversion: Float
+		remainingCompletes: Int
+		actualMedianLOI: Int
+		incurredCost: Float
+		estimatedCost: Float
+	}
+
+	type LineItem {
+		state: LineItemState!
+		stateReason: String
+		stateLastUpdatedAt: Timestamp
+		createdAt: Timestamp
+		updatedAt: Timestamp
+		launchedAt: Timestamp
+		quotaPlan: QuotaPlan!
+		quotaGroups: [QuotaGroup!]!
+	}
+
+	type Project {
+		extProjectId: ID!
+		title: String!
+		countryISOCode: CountryISOCode!
+		languageISOCode: LanguageISOCode!
+		notificationEmails: [Email!]!
+		devices: [Device!]!
+		category: ProjectCategory!
+		lineItems: [LineItem!]!
+		exclusions: ProjectExclusions
+		state: ProjectState
+		stateLastUpdatedAt: Timestamp
+		createdAt: Timestamp
+		updatedAt: Timestamp
+	}
 `;
 
-const resolvers = {};
+const resolvers = {
+	Query: {
+		allProjects: () => [mockProject],
+		project: id => mockProject,
+		allLineItems: extProjectId => [mockLineItem],
+		lineItem: (extProjectId, extLineItemId) => mockLineItem
+	},
+	Report: {
+		__resolveType(obj) {
+			if (obj.project) return "ProjectReport";
+			if (obj.lineItem) return "LineItemReport";
+			return null;
+		}
+	}
+};
 
 const schema = makeExecutableSchema({
 	typeDefs,
