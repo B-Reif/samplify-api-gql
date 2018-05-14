@@ -210,7 +210,7 @@ const resolvers = {
 		allProjects: () => projectRepository.getAllProjects(),
 		project: () => projectRepository.getProjectById(),
 		allLineItems: () => lineItemRepository.getProjectLineItems(),
-		lineItem: () => mockLineItem
+		lineItem: () => lineItemRepository.getLineItem()
 	},
 	Mutation: {
 		createProject: () => projectRepository.createProject(),

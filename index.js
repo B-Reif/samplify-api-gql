@@ -5,6 +5,8 @@ const { graphqlExpress, graphiqlExpress } = require("apollo-server-express");
 const { makeExecutableSchema } = require("graphql-tools");
 require("dotenv").config();
 
+const { CLIENT_ID, USERNAME, PASSWORD } = process.env;
+
 // The GraphQL schema in string form
 const typeDefs = ``;
 const resolvers = {};
