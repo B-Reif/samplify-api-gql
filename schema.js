@@ -1,82 +1,19 @@
 const { makeExecutableSchema } = require("graphql-tools");
 const fetch = require("node-fetch");
+const { projectRepository } = require("./projectRepository");
+const { lineItemRepository } = require("./lineItemRepository");
 
 const gql = String.raw;
 
 /**
  * TODO:
- * Specify Mutation type and resolvers
+ * Specify Mutation resolvers
  * Add endLinks field to line items
  * Add pricing and feasibility
  * Add updateProject, updateLineItem
  * Add "data endpoints" (countries/languages, attributes, categories)
- * Add actual API
+ * Add actual API, resolvers
  */
-
-//     type Mutation {
-//         createProject(
-//             extProjectId: ID!,
-//             title: String!,
-//             notificationEmails: [Email!]!,
-//             devices: [Device!]!,
-//             category: ProjectCategory!,
-//             lineItems: [LineItem!]!,
-//             exclusions: ProjectExclusions
-//         ): Project
-//         buyProject(
-//             extProjectId: ID!,
-//             extLineItemId: ID!,
-//             surveyURL: String!,
-//             surveyTextURL: String!
-//         ): LineItem
-//         closeProject(extProjectId: ID!): Project
-//         addLineItem(
-//             extLineItemId: ID!,
-//             title: String!,
-//             countryISOCode: CountryISOCode!,
-//             languageISOCode: LanguageISOCode!,
-//             surveyURL: String,
-//             surveyTestURL: String,
-//             indicativeIncidence: Float!,
-//             daysInField: Int!,
-//             lengthOfInterview: Int!,
-//             requiredCompletes: Int!,
-//         )
-//     }
-
-const mockProject = {
-	extProjectId: "0",
-	title: "Mock Project",
-	countryISOCode: "US",
-	languageISOCode: "EN",
-	notificationEmails: [],
-	devices: [],
-	category: {
-		surveyTopic: "Mock"
-	},
-	lineItems: [],
-	exclusions: {
-		type: "PROJECT",
-		list: []
-	},
-	state: "PROVISIONED",
-	stateLastUpdatedAt: "00:00",
-	createdAt: "00:00",
-	updatedAt: "00:00"
-};
-
-const mockLineItem = {
-	state: "PROVISIONED",
-	stateReason: "Mock",
-	stateLastUpdatedAt: "00:00",
-	createdAt: "00:00",
-	updatedAt: "00:00",
-	launchedAt: "00:00",
-	quotaPlan: {
-		filters: []
-	},
-	quotaGroups: []
-};
 
 const typeDefs = gql`
 	# Enums
@@ -115,6 +52,29 @@ const typeDefs = gql`
 	scalar CountryISOCode
 
 	scalar LanguageISOCode
+
+	# Inputs
+	input ProjectCategoryInput {
+		surveyTopic: [ID!]!
+	}
+
+	input LineItemInput {
+		extLineItemId: ID!
+		title: String!
+		countryISOCode: CountryISOCode!
+		languageISOCode: LanguageISOCode!
+		surveyURL: String
+		surveyTestURL: String
+		indicativeIncidence: Float!
+		daysInField: Int!
+		lengthOfInterview: Int!
+		requiredCompletes: Int!
+	}
+
+	input ProjectExclusionsInput {
+		type: ExclusionType!
+		list: [String!]!
+	}
 
 	type ProjectCategory {
 		surveyTopic: [ID!]!
@@ -170,7 +130,23 @@ const typeDefs = gql`
 	}
 
 	type Mutation {
-		test: String
+		createProject(
+			extProjectId: ID!
+			title: String!
+			notificationEmails: [Email!]!
+			devices: [Device!]!
+			category: ProjectCategoryInput!
+			lineItems: [LineItemInput!]!
+			exclusions: ProjectExclusionsInput
+		): Project
+		buyProject(
+			extProjectId: ID!
+			extLineItemId: ID!
+			surveyURL: String!
+			surveyTestURL: String!
+		): [LineItem]
+		closeProject(extProjectId: ID!): Project
+		addLineItem(input: LineItemInput): LineItem
 	}
 
 	type LineItemReport implements Report {
@@ -231,10 +207,16 @@ const typeDefs = gql`
 
 const resolvers = {
 	Query: {
-		allProjects: () => [mockProject],
-		project: id => mockProject,
-		allLineItems: extProjectId => [mockLineItem],
-		lineItem: (extProjectId, extLineItemId) => mockLineItem
+		allProjects: () => projectRepository.getAllProjects(),
+		project: () => projectRepository.getProjectById(),
+		allLineItems: () => lineItemRepository.getProjectLineItems(),
+		lineItem: () => mockLineItem
+	},
+	Mutation: {
+		createProject: () => projectRepository.createProject(),
+		buyProject: () => lineItemRepository.getProjectLineItems(),
+		closeProject: () => projectRepository.closeProject(),
+		addLineItem: () => lineItemRepository.addLineItem()
 	},
 	Report: {
 		__resolveType(obj) {
