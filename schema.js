@@ -189,14 +189,14 @@ const typeDefs = gql`
 	}
 
 	type Project {
-		extProjectId: ID!
-		title: String!
-		countryISOCode: CountryISOCode!
-		languageISOCode: LanguageISOCode!
-		notificationEmails: [Email!]!
-		devices: [Device!]!
-		category: ProjectCategory!
-		lineItems: [LineItem!]!
+		extProjectId: ID
+		title: String
+		countryISOCode: CountryISOCode
+		languageISOCode: LanguageISOCode
+		notificationEmails: [Email!]
+		devices: [Device!]
+		category: ProjectCategory
+		lineItems: [LineItem!]
 		exclusions: ProjectExclusions
 		state: ProjectState
 		stateLastUpdatedAt: Timestamp
@@ -213,7 +213,7 @@ const resolvers = {
 		lineItem: () => lineItemRepository.getLineItem()
 	},
 	Mutation: {
-		createProject: () => projectRepository.createProject(),
+		createProject: projectRepository.createProject,
 		buyProject: () => lineItemRepository.getProjectLineItems(),
 		closeProject: () => projectRepository.closeProject(),
 		addLineItem: () => lineItemRepository.addLineItem()
